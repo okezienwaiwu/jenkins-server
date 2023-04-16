@@ -1,28 +1,14 @@
 # configured aws provider with proper credentials
 provider "aws" {
-  region    = "us-east-1"
-  shared_config_files      = ["/Users/austi/.aws/conf"]
-  shared_credentials_files = ["/Users/austi/.aws/credentials"]
-  profile                  = "dec-user"
+  region  = "us-east-1"
+  profile = "Okezie"
 }
-
-# Create a remote backend for your terraform 
-terraform {
-  backend "s3" {
-    bucket = "austinobioma-docker-statefile"
-    region = "us-east-1"
-    profile = "dec-user"
-    key    = "jenkins-statefile"
-
-  }
-}
-
 
 # create default vpc if one does not exit
 resource "aws_default_vpc" "default_vpc" {
 
-  tags    = {
-    Name  = "default vpc"
+  tags = {
+    Name = "default vpc"
   }
 }
 
@@ -35,9 +21,9 @@ data "aws_availability_zones" "available_zones" {}
 resource "aws_default_subnet" "default_az1" {
   availability_zone = data.aws_availability_zones.available_zones.names[0]
 
-  tags   = {
+  tags = {
     Name = "default subnet"
-}
+  }
 }
 
 
@@ -49,46 +35,46 @@ resource "aws_security_group" "ec2_security_group" {
 
   # allow access on port 8080
   ingress {
-    description      = "http proxy access"
-    from_port        = 8080
-    to_port          = 8080
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = "http proxy access"
+    from_port   = 8080
+    to_port     = 8080
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # allow access on port 22
   ingress {
-    description      = "ssh access"
-    from_port        = 22
-    to_port          = 22
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = "ssh access"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    description      = "http proxy-nginx access"
-    from_port        = 80
-    to_port          = 80
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = "http proxy-nginx access"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    description      = "http nginx access"
-    from_port        = 9090
-    to_port          = 9090
-    protocol         = "tcp"
-    cidr_blocks      = ["0.0.0.0/0"]
+    description = "http nginx access"
+    from_port   = 9090
+    to_port     = 9090
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = -1
-    cidr_blocks      = ["0.0.0.0/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = -1
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  tags   = {
+  tags = {
     Name = "Jenkins server security group"
   }
 }
@@ -97,19 +83,19 @@ resource "aws_security_group" "ec2_security_group" {
 # use data source to get a registered amazon linux 2 ami
 data "aws_ami" "ubuntu" {
 
-    most_recent = true
+  most_recent = true
 
-    filter {
-        name   = "name"
-        values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-    }
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
 
-    filter {
-        name = "virtualization-type"
-        values = ["hvm"]
-    }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
 
-    owners = ["099720109477"]
+  owners = ["099720109477"]
 }
 
 # launch the ec2 instance and install website
@@ -119,8 +105,8 @@ resource "aws_instance" "ec2_instance" {
   instance_type          = "t2.small"
   subnet_id              = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.ec2_security_group.id]
-  key_name               = "dec-key"
-  user_data            = "${file("jenkins_install.sh")}"
+  key_name               = "October_Session_Key_Pair"
+  user_data              = file("jenkins_install.sh")
 
   tags = {
     Name = "Jenkins-server"
@@ -132,8 +118,8 @@ resource "aws_instance" "ec2_instance1" {
   instance_type          = "t2.micro"
   subnet_id              = aws_default_subnet.default_az1.id
   vpc_security_group_ids = [aws_security_group.ec2_security_group.id]
-  key_name               = "dec-key"
-  user_data            = "${file("docker-install.sh")}"
+  key_name               = "October_Session_Key_Pair"
+  user_data              = file("docker-install.sh")
 
   tags = {
     Name = "Docker-server"
